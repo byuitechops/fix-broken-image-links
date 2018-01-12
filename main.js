@@ -9,6 +9,7 @@ var fs = require('fs'),
     cheerio = require('cheerio'),
     timestamp = Date.now(),
     htmlFiles = [],
+    allImages = [],
     currentPath = pathLib.resolve('.');
 //make a new folder with the timestamp in the name
 var newPath = pathLib.resolve(currentPath, 'Updated_Files' + timestamp);
@@ -35,7 +36,7 @@ htmlFiles.map(function (file) {
             var newSrc = source.replace(/\?.*$/, ''),
                 split = newSrc.split('/');
             newSrc = split[0] + '/' + split[split.length - 1];
-            console.log(newSrc);
+            allImages.push(newSrc);
             image.attr('src', newSrc);
         }
     });
@@ -44,3 +45,10 @@ htmlFiles.map(function (file) {
     // write html to a new folder (without changing the filenames)
     fs.writeFileSync(pathLib.resolve(newPath, file), contents)
 });
+var filename = 'all-course-images';
+
+function toUnique(image, i, uniqueImages) {
+    return uniqueImages.indexOf(image) === i;
+}
+
+fs.writeFileSync(filename + '.csv', toUnique(allImages))
