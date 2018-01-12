@@ -1,14 +1,15 @@
+#! /usr/bin/env node
+
 /*eslint-env node, es6*/
 /*eslint no-console:0*/
 /*eslint no-undef:0*/
 /*eslint no-unused-vars:0*/
-
 var fs = require('fs'),
     pathLib = require('path'),
     cheerio = require('cheerio'),
     timestamp = Date.now(),
     htmlFiles = [],
-    currentPath = pathLib.resolve('../D2LExport_ART110/');
+    currentPath = pathLib.resolve('.');
 //make a new folder with the timestamp in the name
 var newPath = pathLib.resolve(currentPath, 'Updated_Files' + timestamp);
 fs.mkdirSync(newPath);
@@ -18,7 +19,6 @@ htmlFiles = fs.readdirSync(currentPath)
     .filter(function (file) {
         return pathLib.extname(file) === '.html';
     });
-//console.log('HTMLFILES', htmlFiles);
 
 htmlFiles.map(function (file) {
     //read file- html string
