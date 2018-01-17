@@ -51,4 +51,4 @@ function toUnique(image, i, uniqueImages) {
     return uniqueImages.indexOf(image) === i;
 }
 
-fs.writeFileSync(filename + '.csv', toUnique(allImages))
+fs.writeFileSync(filename + '.csv', toUnique(allImages));
