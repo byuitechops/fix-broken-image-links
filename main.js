@@ -12,12 +12,17 @@ var fs = require('fs'),
     allImages = [],
     currentPath = pathLib.resolve('.');
 
-console.log(currentPath);
-
+console.log('current path', currentPath);
+//helper function to unique images
+function toUnique(image) {
+    var uniqueVals = [...new Set(allImages)];
+    console.log('unique values:', uniqueVals.length)
+    return uniqueVals;
+}
 //format timestamp
-timestamp = (timestamp.getUTCMonth() + 1) + '_'
-            + timestamp.getUTCDate() + '_'
-            + timestamp.getUTCFullYear();
+timestamp = (timestamp.getUTCMonth() + 1) + '_' +
+    timestamp.getUTCDate() + '_' +
+    timestamp.getUTCFullYear();
 
 //make a new folder with the timestamp in the name
 var newPath = pathLib.resolve(currentPath, 'Updated_Files_' + timestamp);
@@ -28,11 +33,12 @@ htmlFiles = fs.readdirSync(currentPath)
     .filter(function (file) {
         return pathLib.extname(file) === '.html';
     });
+fs.writeFileSync('originalPaths.csv', htmlFiles);
 
+//for each image, read it, parse it, and split it
 htmlFiles.map(function (file) {
-    //read file- html string
     var contents = fs.readFileSync(pathLib.resolve(currentPath, file), 'utf8');
-    //parse file with Cheerio
+    //parse file w/Cheerio
     $ = cheerio.load(contents)
     images = $('img');
     images.each(function (i, image) {
@@ -53,10 +59,7 @@ htmlFiles.map(function (file) {
     // write html to a new folder (without changing the filenames)
     fs.writeFileSync(pathLib.resolve(newPath, file), contents)
 });
-var filename = 'all-course-images';
-
-function toUnique(image, i, uniqueImages) {
-    return uniqueImages.indexOf(image) === i;
+console.log('non-unique-values:', allImages.length)
+if (allImages.length !== 0) {
+    fs.writeFileSync('changedPaths.csv', toUnique(allImages));
 }
-
-fs.writeFileSync(filename + '.csv', toUnique(allImages));
