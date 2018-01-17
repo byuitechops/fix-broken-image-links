@@ -13,7 +13,6 @@ var fs = require('fs'),
     allImages = [],
     currentPath = pathLib.resolve('.');
 
-console.log('current path', currentPath);
 //helper function to unique images by object attribute
 function makeToUnique(attribute) {
     return function (image, i, originalArray) {
@@ -67,15 +66,22 @@ var imgSrcs = htmlFiles.reduce(function (imgSrcs, file) {
 }, []);
 
 //check imgSrcs for duplicates
-fs.writeFileSync('before.csv', dsv.csvFormat(imgSrcs));
 imgSrcs = imgSrcs.filter(makeToUnique('source'));
-fs.writeFileSync('after.csv', dsv.csvFormat(imgSrcs));
+//fs.writeFileSync('after.csv', dsv.csvFormat(imgSrcs));
 var nonDuplicates = imgSrcs.every(makeToUnique('newSource'));
 
-//make changes to individual html files
-imgSrcs.map(function (file) {
+//make changes to individual html files and publish them to new directory
+//this part doesn't quite work yet, hoping to refine it. The files aren't being written to the new directory even though the files are being edited.
+/*htmlFiles.map(function (file) {
+    $ = cheerio.load(file.contents)
+    images = $('img');
+    images.each(function (i, image) {
+        image = $(image);
+        image.attr('src', image.newSource);
+    });
     //get all html back from cheerio
     contents = $.html()
-    // write html to a new folder (keeping the filenames)
-    fs.writeFileSync(pathLib.resolve(newPath, file), contents)
-});
+    var path = pathLib.resolve(newPath, file.name);
+    console.log(path)
+    fs.writeFileSync(path, contents)
+});*/
