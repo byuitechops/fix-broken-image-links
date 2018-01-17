@@ -7,12 +7,20 @@
 var fs = require('fs'),
     pathLib = require('path'),
     cheerio = require('cheerio'),
-    timestamp = Date.now(),
+    timestamp = new Date(),
     htmlFiles = [],
     allImages = [],
     currentPath = pathLib.resolve('.');
+
+console.log(currentPath);
+
+//format timestamp
+timestamp = (timestamp.getUTCMonth() + 1) + '_'
+            + timestamp.getUTCDate() + '_'
+            + timestamp.getUTCFullYear();
+
 //make a new folder with the timestamp in the name
-var newPath = pathLib.resolve(currentPath, 'Updated_Files' + timestamp);
+var newPath = pathLib.resolve(currentPath, 'Updated_Files_' + timestamp);
 fs.mkdirSync(newPath);
 
 //read the folder from the computer and save html files into array
