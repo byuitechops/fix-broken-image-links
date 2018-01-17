@@ -7,39 +7,46 @@
 var fs = require('fs'),
     pathLib = require('path'),
     cheerio = require('cheerio'),
-    timestamp = new Date(),
+    dsv = require('d3-dsv'),
+    timestamp = Date.now(),
     htmlFiles = [],
     allImages = [],
     currentPath = pathLib.resolve('.');
 
 console.log('current path', currentPath);
-//helper function to unique images
-function toUnique(image) {
-    var uniqueVals = [...new Set(allImages)];
-    console.log('unique values:', uniqueVals.length)
-    return uniqueVals;
+//helper function to unique images by object attribute
+function makeToUnique(attribute) {
+    return function (image, i, originalArray) {
+        return originalArray.findIndex((function (findImage) {
+            return findImage[attribute] === image[attribute];
+        })) === i;
+    }
 }
-//format timestamp
-timestamp = (timestamp.getUTCMonth() + 1) + '_' +
-    timestamp.getUTCDate() + '_' +
-    timestamp.getUTCFullYear();
+//format timestamp - inhibits multiple runs. May use in the future
+//timestamp = (timestamp.getUTCMonth() + 1) + '_' +
+//    timestamp.getUTCDate() + '_' +
+//    timestamp.getUTCFullYear();
 
 //make a new folder with the timestamp in the name
 var newPath = pathLib.resolve(currentPath, 'Updated_Files_' + timestamp);
 fs.mkdirSync(newPath);
 
-//read the folder from the computer and save html files into array
+//save html files
 htmlFiles = fs.readdirSync(currentPath)
     .filter(function (file) {
         return pathLib.extname(file) === '.html';
+    }).map(function (file) {
+        var path = pathLib.resolve(currentPath, file);
+        var contents = fs.readFileSync(path, 'utf8');
+        return {
+            name: path,
+            contents: contents
+        };
     });
-fs.writeFileSync('originalPaths.csv', htmlFiles);
 
-//for each image, read it, parse it, and split it
-htmlFiles.map(function (file) {
-    var contents = fs.readFileSync(pathLib.resolve(currentPath, file), 'utf8');
+var imgSrcs = htmlFiles.reduce(function (imgSrcs, file) {
     //parse file w/Cheerio
-    $ = cheerio.load(contents)
+    $ = cheerio.load(file.contents)
     images = $('img');
     images.each(function (i, image) {
         image = $(image)
@@ -50,16 +57,25 @@ htmlFiles.map(function (file) {
             var newSrc = source.replace(/\?.*$/, ''),
                 split = newSrc.split('/');
             newSrc = split[0] + '/' + split[split.length - 1];
-            allImages.push(newSrc);
-            image.attr('src', newSrc);
+            imgSrcs.push({
+                source: source,
+                newSource: newSrc
+            });
         }
     });
+    return imgSrcs;
+}, []);
+
+//check imgSrcs for duplicates
+fs.writeFileSync('before.csv', dsv.csvFormat(imgSrcs));
+imgSrcs = imgSrcs.filter(makeToUnique('source'));
+fs.writeFileSync('after.csv', dsv.csvFormat(imgSrcs));
+var nonDuplicates = imgSrcs.every(makeToUnique('newSource'));
+
+//make changes to individual html files
+imgSrcs.map(function (file) {
     //get all html back from cheerio
     contents = $.html()
-    // write html to a new folder (without changing the filenames)
+    // write html to a new folder (keeping the filenames)
     fs.writeFileSync(pathLib.resolve(newPath, file), contents)
 });
-console.log('non-unique-values:', allImages.length)
-if (allImages.length !== 0) {
-    fs.writeFileSync('changedPaths.csv', toUnique(allImages));
-}
