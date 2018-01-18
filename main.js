@@ -10,7 +10,6 @@ var fs = require('fs'),
     dsv = require('d3-dsv'),
     timestamp = Date.now(),
     htmlFiles = [],
-    allImages = [],
     currentPath = pathLib.resolve('.');
 
 //helper function to unique images by object attribute
@@ -34,7 +33,8 @@ fs.mkdirSync(newPath);
 htmlFiles = fs.readdirSync(currentPath)
     .filter(function (file) {
         return pathLib.extname(file) === '.html';
-    }).map(function (file) {
+    })
+    .map(function (file) {
         var path = pathLib.resolve(currentPath, file);
         var contents = fs.readFileSync(path, 'utf8');
         return {
@@ -70,18 +70,27 @@ imgSrcs = imgSrcs.filter(makeToUnique('source'));
 //fs.writeFileSync('after.csv', dsv.csvFormat(imgSrcs));
 var nonDuplicates = imgSrcs.every(makeToUnique('newSource'));
 
-//make changes to individual html files and publish them to new directory
-//this part doesn't quite work yet, hoping to refine it. The files aren't being written to the new directory even though the files are being edited.
-/*htmlFiles.map(function (file) {
+//make changes to each file and publish them to new directory
+htmlFiles.map(function (file) {
     $ = cheerio.load(file.contents)
     images = $('img');
     images.each(function (i, image) {
         image = $(image);
-        image.attr('src', image.newSource);
+        var source = image.attr('src');
+        //trying to get the find function to return the correct obj
+        var indvImg = imgSrcs.find(function (obj) {
+            if (image.src === obj.source) {
+                indvImg.newSource = obj.newSource;
+                return true;
+            } else {
+                return false;
+            }
+        });
+        console.log('individual image', indvImg);
+        image.attr('src', indvImg.newSource);
     });
     //get all html back from cheerio
     contents = $.html()
     var path = pathLib.resolve(newPath, file.name);
-    console.log(path)
     fs.writeFileSync(path, contents)
-});*/
+});
