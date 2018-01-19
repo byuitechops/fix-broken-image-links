@@ -71,7 +71,7 @@ var filename = 'oldSources',
     allOldSrcs = dsv.csvFormat(imgSrcs, myColumns);
 
 fs.writeFileSync(newFilepath + '.csv', allOldSrcs);
-csvToTable.fromArray(imgSrcs, myColumns, true, false, filename);
+csvToTable.fromArray(imgSrcs, myColumns, true, true, filename);
 
 //check imgSrcs for duplicates
 imgSrcs = imgSrcs.filter(makeToUnique('source'));
