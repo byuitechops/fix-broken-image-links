@@ -22,6 +22,7 @@
     "homepage": "https://github.com/byuitechops/fix-broken-image-links#readme",
     "dependencies": {
         "cheerio": "^1.0.0-rc.2",
+        "csv-to-table": "git+https://github.com/byuitechops/csv-to-table.git",
         "d3-dsv": "^1.0.8",
         "fs": "0.0.1-security",
         "path": "^0.12.7"

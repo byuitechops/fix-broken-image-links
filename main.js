@@ -1,13 +1,13 @@
 #! /usr/bin/env node
 
 /*eslint-env node, es6*/
-/*eslint no-console:0*/
 /*eslint no-undef:0*/
 /*eslint no-unused-vars:0*/
 var fs = require('fs'),
     pathLib = require('path'),
     cheerio = require('cheerio'),
     dsv = require('d3-dsv'),
+    csvToTable = require('csv-to-table'),
     timestamp = Date.now(),
     htmlFiles = [],
     currentPath = pathLib.resolve('.');
@@ -49,10 +49,8 @@ var imgSrcs = htmlFiles.reduce(function (newSources, file) {
     images = $('img');
     images.each(function (i, image) {
         image = $(image);
-        //console.log('image', image)
         //remove old source attr
         var source = image.attr('src');
-        //console.log('Source', source)
         //takes care of the query string if it exists
         if (source.includes('Course%20Files')) {
             var newSrc = source.replace(/\?.*$/, ''),
@@ -67,6 +65,14 @@ var imgSrcs = htmlFiles.reduce(function (newSources, file) {
     return newSources;
 }, []);
 
+var filename = 'oldSources',
+    newFilepath = newPath + '\\' + filename,
+    myColumns = ['source'],
+    allOldSrcs = dsv.csvFormat(imgSrcs, myColumns);
+
+fs.writeFileSync(newFilepath + '.csv', allOldSrcs);
+csvToTable.fromArray(imgSrcs, myColumns, true, false, filename);
+
 //check imgSrcs for duplicates
 imgSrcs = imgSrcs.filter(makeToUnique('source'));
 //fs.writeFileSync('after.csv', dsv.csvFormat(imgSrcs));
@@ -76,7 +82,6 @@ var nonDuplicates = imgSrcs.every(makeToUnique('newSource'));
 htmlFiles.map(function (file) {
     $ = cheerio.load(file.contents)
     images = $('img');
-    //console.log('IMAGES:', images)
     images.each(function (i, image) {
         image = $(image);
         var source = image.attr('src'),
@@ -97,6 +102,5 @@ htmlFiles.map(function (file) {
     contents = $.html()
     splitPath = file.name.split('\\')[file.name.split('\\').length - 1];
     var path = newPath + '/' + splitPath;
-    console.log('path', path)
     fs.writeFileSync(path, contents)
 });
