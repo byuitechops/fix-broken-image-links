@@ -20,7 +20,7 @@ function makeToUnique(attribute) {
         })) === i;
     }
 }
-//format timestamp - inhibits multiple runs. May use in the future
+//format timestamp inhibits multiple test runs. May use in the future though
 //timestamp = (timestamp.getUTCMonth() + 1) + '_' +
 //    timestamp.getUTCDate() + '_' +
 //    timestamp.getUTCFullYear();
@@ -43,26 +43,28 @@ htmlFiles = fs.readdirSync(currentPath)
         };
     });
 
-var imgSrcs = htmlFiles.reduce(function (imgSrcs, file) {
+var imgSrcs = htmlFiles.reduce(function (newSources, file) {
     //parse file w/Cheerio
     $ = cheerio.load(file.contents)
     images = $('img');
     images.each(function (i, image) {
-        image = $(image)
+        image = $(image);
+        //console.log('image', image)
         //remove old source attr
         var source = image.attr('src');
+        //console.log('Source', source)
         //takes care of the query string if it exists
         if (source.includes('Course%20Files')) {
             var newSrc = source.replace(/\?.*$/, ''),
                 split = newSrc.split('/');
             newSrc = split[0] + '/' + split[split.length - 1];
-            imgSrcs.push({
+            newSources.push({
                 source: source,
                 newSource: newSrc
             });
         }
     });
-    return imgSrcs;
+    return newSources;
 }, []);
 
 //check imgSrcs for duplicates
@@ -74,23 +76,27 @@ var nonDuplicates = imgSrcs.every(makeToUnique('newSource'));
 htmlFiles.map(function (file) {
     $ = cheerio.load(file.contents)
     images = $('img');
+    //console.log('IMAGES:', images)
     images.each(function (i, image) {
         image = $(image);
-        var source = image.attr('src');
-        //trying to get the find function to return the correct obj
-        var indvImg = imgSrcs.find(function (obj) {
-            if (image.src === obj.source) {
-                indvImg.newSource = obj.newSource;
-                return true;
-            } else {
-                return false;
-            }
-        });
-        console.log('individual image', indvImg);
+        var source = image.attr('src'),
+            indvImg = {};
+        if (source.includes('Course%20Files')) {
+            imgSrcs.find(function (obj) {
+                if (source === obj.source) {
+                    indvImg.newSource = obj.newSource;
+                    return true;
+                } else {
+                    return false;
+                }
+            });
+        }
         image.attr('src', indvImg.newSource);
     });
     //get all html back from cheerio
     contents = $.html()
-    var path = pathLib.resolve(newPath, file.name);
+    splitPath = file.name.split('\\')[file.name.split('\\').length - 1];
+    var path = newPath + '/' + splitPath;
+    console.log('path', path)
     fs.writeFileSync(path, contents)
 });
