@@ -11,14 +11,14 @@ var fs = require('fs'),
     timestamp = Date.now(),
     htmlFiles = [],
     currentPath = pathLib.resolve('.');
-
+console.log(currentPath);
 //helper function to unique images by object attribute
 function makeToUnique(attribute) {
     return function (image, i, originalArray) {
-        return originalArray.findIndex((function (findImage) {
+        return originalArray.findIndex(function (findImage) {
             return findImage[attribute] === image[attribute];
-        })) === i;
-    }
+        }) === i;
+    };
 }
 //format timestamp inhibits multiple test runs. May use in the future though
 //timestamp = (timestamp.getUTCMonth() + 1) + '_' +
@@ -35,17 +35,17 @@ htmlFiles = fs.readdirSync(currentPath)
         return pathLib.extname(file) === '.html';
     })
     .map(function (file) {
-        var path = pathLib.resolve(currentPath, file);
+        var path = file;
         var contents = fs.readFileSync(path, 'utf8');
         return {
             name: path,
             contents: contents
         };
     });
-
+console.log('html files', htmlFiles);
 var imgSrcs = htmlFiles.reduce(function (newSources, file) {
     //parse file w/Cheerio
-    $ = cheerio.load(file.contents)
+    $ = cheerio.load(file.contents);
     images = $('img');
     images.each(function (i, image) {
         image = $(image);
@@ -80,7 +80,7 @@ var nonDuplicates = imgSrcs.every(makeToUnique('newSource'));
 
 //make changes to each file and publish them to new directory
 htmlFiles.map(function (file) {
-    $ = cheerio.load(file.contents)
+    $ = cheerio.load(file.contents);
     images = $('img');
     images.each(function (i, image) {
         image = $(image);
@@ -99,8 +99,8 @@ htmlFiles.map(function (file) {
         image.attr('src', indvImg.newSource);
     });
     //get all html back from cheerio
-    contents = $.html()
+    contents = $.html();
     splitPath = file.name.split('\\')[file.name.split('\\').length - 1];
     var path = newPath + '/' + splitPath;
-    fs.writeFileSync(path, contents)
+    fs.writeFileSync(path, contents);
 });
