@@ -1,7 +1,7 @@
 # fix-broken-image-links
 
 ## Description 
-This tool fixes images with wrong url
+This tool fixes images with a relative URL in Brightspace (which causes it to break in Canvas)
 
 ## How to Install
 
